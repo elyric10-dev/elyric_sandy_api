@@ -13,13 +13,9 @@ return new class extends Migration
     {
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('middle')->nullable();
-            $table->string('lastname');
             $table->string('invitation_code')->unique();
             $table->integer('seat_count');
-            $table->boolean('is_attending')->default(false);
-            $table->boolean('is_locked')->default(false);
+            $table->integer('attended_count')->default(0);
             $table->timestamps();
         });
     }

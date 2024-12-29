@@ -10,25 +10,18 @@ use Illuminate\Support\Str;
 class Invitation extends Model
 {
     protected $fillable = [
-        'name',
-        'middle',
-        'lastname',
+        'party_members_id',
         'invitation_code',
         'seat_count',
-        'is_attending',
+        'attended_count',
     ];
     
     protected $casts = [
-        'is_attending' => 'boolean',
-        'seat_count' => 'integer'
+        'seat_count' => 'integer',
+        'attended_count' => 'integer'
     ];
 
     protected $appends = ['invitation_link'];
-
-    public function partyMembers(): HasMany
-    {
-        return $this->hasMany(PartyMember::class);
-    }
 
     public static function generateInvitationCode(): string
     {
@@ -38,5 +31,10 @@ class Invitation extends Model
     public function getInvitationLinkAttribute(): string
     {
         return env('FRONTEND_URL') . '/rsvp/' . $this->invitation_code;
+    }
+
+    public function guests(): HasMany
+    {
+        return $this->hasMany(Guest::class);
     }
 }

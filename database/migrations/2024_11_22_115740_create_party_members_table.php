@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('invitations', function (Blueprint $table) {
-            $table->dropColumn('is_locked');
+        Schema::create('party_members', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('invitations', function (Blueprint $table) {
-            $table->boolean('is_locked')->default(false)->after('is_attending');
-        });
+        Schema::dropIfExists('guests');
     }
 };

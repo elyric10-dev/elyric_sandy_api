@@ -3,18 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PartyMember extends Model
 {
-    protected $fillable = [
-        'name',
-        'middle',
-        'lastname',
-        'invitation_id'
-    ];
 
-    public function invitation(): BelongsTo
+    public function guests(): HasMany
     {
-        return $this->belongsTo(Invitation::class);
+        return $this->hasMany(Guest::class);
     }
 }

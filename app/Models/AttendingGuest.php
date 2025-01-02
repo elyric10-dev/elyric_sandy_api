@@ -11,6 +11,7 @@ class AttendingGuest extends Model
         'invitation_id',
         'party_member_id',
         'guest_id',
+        'status',
         'name',
         'middle',
         'lastname'

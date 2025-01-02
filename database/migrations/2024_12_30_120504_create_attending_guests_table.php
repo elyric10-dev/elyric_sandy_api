@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('invitation_id')->constrained()->onDelete('cascade');
             $table->foreignId('party_member_id')->constrained()->onDelete('cascade');
             $table->foreignId('guest_id')->constrained()->onDelete('cascade');
+            $table->foreignId('table_id')->nullable()->constrained()->onDelete('cascade');
+            $table->enum('status', ['waiting', 'arrived', 'not-arrived'])->default('waiting');
             $table->string('name');
             $table->string('middle')->nullable();
             $table->string('lastname');

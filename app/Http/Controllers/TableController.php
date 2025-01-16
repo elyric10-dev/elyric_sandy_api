@@ -21,6 +21,8 @@ class TableController extends Controller
 
         foreach ($tables as $key => $table) {
             $tables[$key]['key'] = $table->id;
+
+            $tables[$key]['table_guests_count'] = AttendingGuest::where('table_id', $table->id)->count();
         }
 
         $tables = $tables->sortBy('table_number')->values()->toArray();
@@ -77,11 +79,24 @@ class TableController extends Controller
     }
 
     public function destroy($id) {
+        if(GlobalSettings::first()->is_locked) {
+            return response()->json([
+                'error' => 'RSVP is locked'
+            ], 403);
+        }
+
         $table = Table::find($id);
         if(!$table) {
             return response()->json([
                 'error' => 'Table not found'
             ], 404);
+        }
+
+        $attendingGuests = AttendingGuest::where('table_id', $id)->get();
+
+        foreach($attendingGuests as $attendingGuest) {
+            $attendingGuest->table_id = null;
+            $attendingGuest->save();
         }
 
         $table->delete();

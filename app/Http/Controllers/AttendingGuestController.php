@@ -16,7 +16,8 @@ class AttendingGuestController extends Controller
 
      public function index()
      {
-         $attendingGuests = AttendingGuest::all();
+         $attendingGuests = AttendingGuest::whereNull('table_id')->get();
+
 
          foreach ($attendingGuests as $key => $attendingGuest) {
              $attendingGuests[$key]['key'] = $attendingGuest->id;
@@ -40,6 +41,33 @@ class AttendingGuestController extends Controller
              'attendingGuests' => $attendingGuests
          ]);
      }
+
+    // ADD GUEST TO TABLE
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'table_id' => 'required|integer|exists:tables,id',
+            'attending_guest_ids' => 'required|exists:attending_guests,id'
+        ]);
+ 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $attendingGuests = AttendingGuest::whereIn('id', $request->attending_guest_ids)->get();
+
+        foreach ($attendingGuests as $key => $attendingGuest) {
+            $attendingGuest->table_id = $request->table_id;
+            $attendingGuest->save();
+            $attendingGuests[$key]['key'] = $attendingGuest->id;
+        }
+ 
+        return response()->json([
+            'message' => 'Attending Guest added successfully',
+            // 'attendingGuests' => $this->show($request->table_id)->original['attendingGuests']
+            'attendingGuests' => $attendingGuests
+        ]);
+    }
 
      public function destroy(Request $request, $id)
      {
@@ -67,6 +95,7 @@ class AttendingGuestController extends Controller
              'attendingGuests' => $attendingGuests->original['attendingGuests']
          ]);
      }
+     
 
 
 }

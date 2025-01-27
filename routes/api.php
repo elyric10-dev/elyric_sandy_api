@@ -21,11 +21,11 @@ Route::get('/pass/{code}', [InvitationController::class, 'showAttendingGuests'])
 //Table Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/admin/seat-plan/guests', AttendingGuestController::class);
-    Route::apiResource('/admin/seat-plan', TableController::class);
+    Route::apiResource('/admin/seat-plan/tables', TableController::class);
 });
 
 Route::post('/login', [AuthenticationController::class, 'login']);
 
 // Global Settings with middleware
 Route::post('/rsvp/global_settings/lock', [InvitationController::class, 'lock']);
-// Route::get('/testing', [InvitationController::class, 'testing']);
+Route::get('/testing', [InvitationController::class, 'testing']);

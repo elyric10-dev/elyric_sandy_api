@@ -27,8 +27,26 @@ class TableController extends Controller
 
         $tables = $tables->sortBy('table_number')->values()->toArray();
 
+        $attendingGuests = AttendingGuest::whereNotNull('table_id')->get();
+        $attendingGuests = collect($attendingGuests)->groupBy('table_id');
+
         return response()->json([
-            'tables' => $tables
+            'tables' => $tables,
+            'tables_guests' => $attendingGuests,
+        ]);
+    }
+
+    
+    public function show($table_id)
+    {
+        $attendingGuests = AttendingGuest::where('table_id', $table_id)->get();
+
+        foreach ($attendingGuests as $key => $attendingGuest) {
+            $attendingGuests[$key]['key'] = $attendingGuest->id;
+        }
+
+        return response()->json([
+            'attendingGuests' => $attendingGuests
         ]);
     }
 
@@ -71,10 +89,16 @@ class TableController extends Controller
 
         $tables = $this->index();
 
+        
+
+        $attendingGuests = AttendingGuest::whereNotNull('table_id')->get();
+        $attendingGuests = collect($attendingGuests)->groupBy('table_id');
+
         return response()->json([
             'message' => 'Table created successfully',
             'table' => $table,
-            'tables' => $tables->original['tables'] 
+            'tables' => $tables->original['tables'],
+            'tables_guests' => $attendingGuests,
         ]);
     }
 

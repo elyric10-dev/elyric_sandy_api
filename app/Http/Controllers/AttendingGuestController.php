@@ -29,16 +29,12 @@ class AttendingGuestController extends Controller
      }
 
 
-     public function show($table_id)
+     public function show($user_id)
      {
-         $attendingGuests = AttendingGuest::where('table_id', $table_id)->get();
- 
-         foreach ($attendingGuests as $key => $attendingGuest) {
-             $attendingGuests[$key]['key'] = $attendingGuest->id;
-         }
+         $attendingGuest = AttendingGuest::where('id', $user_id)->get();
  
          return response()->json([
-             'attendingGuests' => $attendingGuests
+             'attendingGuests' => $attendingGuest
          ]);
      }
 
@@ -61,11 +57,13 @@ class AttendingGuestController extends Controller
             $attendingGuest->save();
             $attendingGuests[$key]['key'] = $attendingGuest->id;
         }
+
+        $table_members = AttendingGuest::where('table_id', $request->table_id)->get();
  
         return response()->json([
             'message' => 'Attending Guest added successfully',
-            // 'attendingGuests' => $this->show($request->table_id)->original['attendingGuests']
-            'attendingGuests' => $attendingGuests
+            'attendingGuests' => $attendingGuests,
+            'table_members' => $table_members
         ]);
     }
 
@@ -88,11 +86,12 @@ class AttendingGuestController extends Controller
  
          $attendingGuest->table_id = null;
          $attendingGuest->save();
-         $attendingGuests = $this->show($request->table_id);
+         
+        $table_members = AttendingGuest::where('table_id', $request->table_id)->get();
  
          return response()->json([
              'message' => 'Attending Guest deleted on table successfully',
-             'attendingGuests' => $attendingGuests->original['attendingGuests']
+             'table_members' => $table_members
          ]);
      }
      

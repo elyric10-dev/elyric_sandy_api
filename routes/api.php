@@ -6,6 +6,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\AttendingGuestController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\KidsController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +23,8 @@ Route::get('/pass/{code}', [InvitationController::class, 'showAttendingGuests'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/admin/seat-plan/guests', AttendingGuestController::class);
     Route::apiResource('/admin/seat-plan/tables', TableController::class);
+
+    Route::apiResource('/admin/seat-plan/kids', KidsController::class);
 });
 
 Route::post('/login', [AuthenticationController::class, 'login']);

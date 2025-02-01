@@ -7,6 +7,7 @@ use App\Models\PartyMember;
 use App\Models\AttendingGuest;
 use App\Models\Guest;
 use App\Models\GlobalSettings;
+use App\Models\Kids;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -16,7 +17,8 @@ class InvitationController extends Controller
 {
     public function show(string $code): JsonResponse
     {
-        $invitation = Invitation::with('guests')
+        //invitation with guests and kids
+        $invitation = Invitation::with('guests', 'kids')
             ->where('invitation_code', $code)
             ->first();
         
@@ -25,6 +27,8 @@ class InvitationController extends Controller
                 'error' => 'Invitation not found'
             ], 404);
         }
+
+        // add kids to the guests
 
         return response()->json([
             'invitation' => $invitation
@@ -41,6 +45,13 @@ class InvitationController extends Controller
 
         $invitation_code_id = $invitation_code->id;
         $attending_guests = AttendingGuest::where('invitation_id', $invitation_code_id)->get();
+
+
+        $kids = Kids::where('invitation_id', $invitation_code_id)->get();
+
+        foreach($kids as $kid){
+            $attending_guests->push($kid);
+        }
         
         if(!$attending_guests) {
             return response()->json([
@@ -49,7 +60,7 @@ class InvitationController extends Controller
         }
 
         return response()->json([
-            'attending_guests' => $attending_guests
+            'attending_guests' => $attending_guests,
         ]);
     }
 
@@ -78,6 +89,10 @@ class InvitationController extends Controller
             'party_members.*.replacement_middle' => 'nullable|string|max:255',
             'party_members.*.replacement_lastname' => 'nullable|string|max:255',
             'party_members.*.replacement_is_attending' => 'nullable|boolean',
+            'kids_list.*.name' => 'nullable|string|max:255',
+            'kids_list.*.middle' => 'nullable|string|max:255',
+            'kids_list.*.lastname' => 'nullable|string|max:255',
+            'kids_list.*.is_attending' => 'nullable|boolean',
         ]);
     
         if ($validator->fails()) {
@@ -92,6 +107,7 @@ class InvitationController extends Controller
         }
 
         $existingPartyMembers = $invitation->guests;
+        $existingKids = $invitation->kids;
 
         foreach ($request->party_members as $key => $member) {
             if ($key < $existingPartyMembers->count()) {
@@ -133,15 +149,26 @@ class InvitationController extends Controller
                 }
             }
         }
+
+        foreach($request->kids_list as $kid){
+            $kids = Kids::find($kid['id']);
+            if($kids){
+                $kids->is_attending = $kid['is_attending'];
+                $kids->save();
+            }
+        }
     
-        $attended_count = AttendingGuest::where('invitation_id', $invitation->id)->count();
-        $invitation->attended_count = $attended_count;
+        $attended_guests_count = AttendingGuest::where('invitation_id', $invitation->id)->count();
+        $attended_kids_count = Kids::where('invitation_id', $invitation->id)
+            ->where('is_attending', true)
+            ->count();
+        $invitation->attended_count = $attended_guests_count + $attended_kids_count;
         $invitation->save();
     
         return response()->json([
             'message' => 'RSVP updated successfully',
-            'invitation' => $invitation->load('guests'),
-            'attended_count' => $attended_count
+            'invitation' => $invitation->load('guests', 'kids'),
+            'attended_count' => $attended_guests_count + $attended_kids_count,
         ]);
     }
 
@@ -163,6 +190,10 @@ class InvitationController extends Controller
             'party_members.*is_attending' => 'boolean|default:false',
             'party_members.*.replacement_name' => 'nullable|string|max:255',
             'party_members.*.replacement_lastname' => 'nullable|string|max:255',
+            'kids_list.*.name' => 'nullable|string|max:255',
+            'kids_list.*.middle' => 'nullable|string|max:255',
+            'kids_list.*.lastname' => 'nullable|string|max:255',
+            'kids_list.*.is_attending' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -177,13 +208,14 @@ class InvitationController extends Controller
             ], 422);
         }
 
-        $invitation = Invitation::create([
-            'seat_count' => $request->seat_count,
-            'invitation_code' => $invitation_code,
-        ]);
-
         $partyMember = PartyMember::create();
         $existingPartyMembers = $request->party_members;
+        $existingKids = $request->kids_list;
+
+        $invitation = Invitation::create([
+            'seat_count' => $request->seat_count + count($existingKids),
+            'invitation_code' => $invitation_code,
+        ]);
 
         $guests = [];
 
@@ -202,9 +234,23 @@ class InvitationController extends Controller
             ]);
             $guests[] = $guest;
         }
+
+
+        foreach($existingKids as $kid){
+            $kids[] = Kids::create([
+                'name' => $kid['name'] ?? null,
+                'middle' => $kid['middle'] ?? null,
+                'lastname' => $kid['lastname'] ?? null,
+                'invitation_id' => $invitation->id,
+                'party_member_id' => $partyMember->id,
+                'is_attending' => $kid['is_attending'] ?? null,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Invitation created successfully',
-            'invitation_link' => env('FRONTEND_URL') . '/rsvp/' . $invitation_code
+            'invitation_link' => env('FRONTEND_URL') . '/rsvp/' . $invitation_code,
+            'kids' => $kids
         ], 201);
     }
 

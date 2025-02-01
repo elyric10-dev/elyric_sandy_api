@@ -12,4 +12,9 @@ class PartyMember extends Model
     {
         return $this->hasMany(Guest::class);
     }
+
+    public function kids(): HasMany
+    {
+        return $this->hasMany(Kids::class);
+    }
 }

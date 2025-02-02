@@ -13,6 +13,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::get('/invitation/{code}', [InvitationController::class, 'show']);
+Route::post('/scan-qr/{code}', [InvitationController::class, 'scanQRCode']);
 Route::post('/invitation/rsvp/{code}', [InvitationController::class, 'rsvp']);
 Route::post('/invitations', [InvitationController::class, 'store']);
 Route::post('/invitations/{code}', [InvitationController::class, 'update']);

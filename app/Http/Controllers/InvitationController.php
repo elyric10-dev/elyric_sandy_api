@@ -17,7 +17,6 @@ class InvitationController extends Controller
 {
     public function show(string $code): JsonResponse
     {
-        //invitation with guests and kids
         $invitation = Invitation::with('guests', 'kids')
             ->where('invitation_code', $code)
             ->first();
@@ -28,10 +27,35 @@ class InvitationController extends Controller
             ], 404);
         }
 
-        // add kids to the guests
-
         return response()->json([
             'invitation' => $invitation
+        ]);
+    }
+    public function scanQRCode(string $code): JsonResponse
+    {
+        $invitation = Invitation::where('invitation_code', $code)
+            ->first();
+        
+        if(!$invitation) {
+            return response()->json([
+                'error' => 'Invitation not found'
+            ], 404);
+        }
+
+        $kids = Kids::where('invitation_id', $invitation->id)->where('is_attending', 1)->get();
+
+        $arrived_guests = AttendingGuest::where('invitation_id', $invitation->id)->get();
+        if($arrived_guests) {
+            foreach($arrived_guests as $arrived_guest){
+                $arrived_guest->status = 'arrived';
+                $arrived_guest->save();
+            }
+        }
+
+        return response()->json([
+            'invitation' => $invitation,
+            'arrived_guests' => $arrived_guests,
+            'kids' => $kids,
         ]);
     }
     public function showAttendingGuests(string $code): JsonResponse
@@ -47,11 +71,7 @@ class InvitationController extends Controller
         $attending_guests = AttendingGuest::where('invitation_id', $invitation_code_id)->get();
 
 
-        $kids = Kids::where('invitation_id', $invitation_code_id)->get();
-
-        foreach($kids as $kid){
-            $attending_guests->push($kid);
-        }
+        $kids = Kids::where('invitation_id', $invitation_code_id)->where('is_attending', 1)->get();
         
         if(!$attending_guests) {
             return response()->json([
@@ -61,6 +81,7 @@ class InvitationController extends Controller
 
         return response()->json([
             'attending_guests' => $attending_guests,
+            'kids' => $kids,
         ]);
     }
 

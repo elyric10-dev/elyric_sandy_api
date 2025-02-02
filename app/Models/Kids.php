@@ -25,4 +25,9 @@ class Kids extends Model
     {
         return $this->belongsTo(Invitation::class);
     }
+
+    public function attendingGuest(): BelongsTo
+    {
+        return $this->belongsTo(AttendingGuest::class);
+    }
 }

@@ -32,4 +32,9 @@ class AttendingGuest extends Model
     {
         return $this->belongsTo(Guest::class);
     }
+
+    public function kids(): HasMany
+    {
+        return $this->hasMany(Kids::class);
+    }
 }

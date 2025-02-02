@@ -18,7 +18,6 @@ class AttendingGuestController extends Controller
      {
          $attendingGuests = AttendingGuest::whereNull('table_id')->get();
 
-
          foreach ($attendingGuests as $key => $attendingGuest) {
              $attendingGuests[$key]['key'] = $attendingGuest->id;
          }

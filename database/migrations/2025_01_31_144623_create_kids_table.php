@@ -15,12 +15,15 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('invitation_id');
             $table->unsignedBigInteger('party_member_id');
+            $table->unsignedBigInteger('table_id')->nullable();
             $table->string('name');
             $table->string('middle')->nullable();
             $table->string('lastname');
             $table->foreign('invitation_id')->references('id')->on('invitations')->onDelete('cascade');
             $table->foreign('party_member_id')->references('id')->on('party_members')->onDelete('cascade');
+            $table->foreign('table_id')->references('id')->on('tables')->onDelete('cascade');
             $table->boolean('is_attending')->default(null);
+            $table->enum('status', ['waiting', 'arrived', 'not-arrived'])->default('waiting');
             $table->timestamps();
         });
     }

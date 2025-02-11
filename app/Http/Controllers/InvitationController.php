@@ -45,17 +45,19 @@ class InvitationController extends Controller
         $kids = Kids::where('invitation_id', $invitation->id)->where('is_attending', 1)->get();
 
         $arrived_guests = AttendingGuest::where('invitation_id', $invitation->id)->get();
-        if($arrived_guests) {
-            foreach($arrived_guests as $arrived_guest){
+        
+        $guests = $arrived_guests->merge($kids);
+        if($guests) {
+            foreach($guests as $arrived_guest){
                 $arrived_guest->status = 'arrived';
                 $arrived_guest->save();
             }
         }
 
+
         return response()->json([
             'invitation' => $invitation,
-            'arrived_guests' => $arrived_guests,
-            'kids' => $kids,
+            'arrived_guests' => $guests,
         ]);
     }
     public function showAttendingGuests(string $code): JsonResponse
@@ -239,6 +241,7 @@ class InvitationController extends Controller
         ]);
 
         $guests = [];
+        $kids = [];
 
         foreach ($existingPartyMembers as $member) {
             $guest = Guest::create([
@@ -256,16 +259,17 @@ class InvitationController extends Controller
             $guests[] = $guest;
         }
 
-
-        foreach($existingKids as $kid){
-            $kids[] = Kids::create([
-                'name' => $kid['name'] ?? null,
-                'middle' => $kid['middle'] ?? null,
-                'lastname' => $kid['lastname'] ?? null,
-                'invitation_id' => $invitation->id,
-                'party_member_id' => $partyMember->id,
-                'is_attending' => $kid['is_attending'] ?? null,
-            ]);
+        if(count($existingKids) > 0){
+            foreach($existingKids as $kid){
+                $kids[] = Kids::create([
+                    'name' => $kid['name'] ?? null,
+                    'middle' => $kid['middle'] ?? null,
+                    'lastname' => $kid['lastname'] ?? null,
+                    'invitation_id' => $invitation->id,
+                    'party_member_id' => $partyMember->id,
+                    'is_attending' => $kid['is_attending'] ?? null,
+                ]);
+            }
         }
 
         return response()->json([

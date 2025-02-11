@@ -14,6 +14,8 @@ class Kids extends Model
         'middle',
         'lastname',
         'is_attending',
+        'table_id',
+        'status',
     ];
 
     public function partyMember(): BelongsTo

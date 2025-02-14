@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\KidsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSettingsController;
+use App\Http\Controllers\RoleController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -23,20 +24,16 @@ Route::post('/invitations/{code}', [InvitationController::class, 'update']);
 Route::get('/pass/{code}', [InvitationController::class, 'showAttendingGuests']);
 
 //Table Routes
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::apiResource('/admin/seat-plan/guests', AttendingGuestController::class);
-//     Route::apiResource('/admin/seat-plan/tables', TableController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('/admin/dashboard', DashboardController::class);
+    Route::apiResource('/admin/seat-plan/guests', AttendingGuestController::class);
+    Route::apiResource('/admin/seat-plan/tables', TableController::class);
+    Route::get('/admin/seat-plan/tables-guests', [TableController::class, 'tablesGuests']);
+    Route::apiResource('/admin/seat-plan/kids', KidsController::class);
 
-//     Route::apiResource('/admin/seat-plan/kids', KidsController::class);
-// });
+    Route::apiResource('/roles', RoleController::class);
+});
 
-Route::apiResource('/admin/dashboard', DashboardController::class);
-
-Route::apiResource('/admin/seat-plan/guests', AttendingGuestController::class);
-Route::apiResource('/admin/seat-plan/tables', TableController::class);
-Route::get('/admin/seat-plan/tables-guests', [TableController::class, 'tablesGuests']);
-
-Route::apiResource('/admin/seat-plan/kids', KidsController::class);
 
 Route::post('/login', [AuthenticationController::class, 'login']);
 

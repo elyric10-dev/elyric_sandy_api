@@ -22,15 +22,17 @@ class DashboardController extends Controller
         $absentGuests = AttendingGuest::where('status', 'not-arrived')->count();
         $tablesCount = Table::all()->count();
         $kidsCount = Kids::all()->count();
+        $guestLeft = $acceptedGuests - $arrivedGuests;
 
         return response()->json([
+            'Arrived Guests' => $arrivedGuests,
+            'Incoming Guests' => $guestLeft,
             'Invited Guests' => $guestsCount,
-            'Attending Guests' => $acceptedGuests,
-            'Rejected Guests' => $rejectedGuests,
+            'Expected Guests' => $acceptedGuests,
+            'Rejected Invitation' => $rejectedGuests,
             'No Response' => $noResponse,
             'Tables Count' => $tablesCount,
             'Kids Count' => $kidsCount,
-            'Arrived Guests' => $arrivedGuests,
             'Absent Guests' => $absentGuests,
         ]);
     }
